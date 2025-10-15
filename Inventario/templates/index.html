@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventários dos Jogadores</title>
+    <style>
+        body { font-family: sans-serif; }
+        table { width: 90%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #dddddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Visualização de Inventários</h1>
+    <p>Abaixo estão listados todos os jogadores e seus itens em tempo real.</p>
+    <hr>
+    
+    {% if inventarios %}
+        {% for nome_jogador, itens in inventarios.items() %}
+            
+            <h2>{{ nome_jogador }}</h2>
+
+            {% if itens %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Descrição</th>
+                            <th>Quantidade</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in itens %}
+                        <tr>
+                            <td>{{ item[0] }}</td>
+                            <td>{{ item[1] }}</td>
+                            <td>{{ item[2] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p><i>Este jogador ainda não possui itens no inventário.</i></p>
+            {% endif %}
+
+        {% endfor %}
+    {% else %}
+        <p>Nenhum jogador cadastrado no sistema ainda.</p>
+    {% endif %}
+
+</body>
+</html>

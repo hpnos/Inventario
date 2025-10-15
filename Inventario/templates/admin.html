@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<a href="{{ url_for('logout') }}" style="float: right;">Sair</a>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Gerenciar Inventários</title>
+</head>
+<body>
+    <h1>Página de Administração</h1>
+    <hr>
+    
+    <h2>Adicionar Novo Jogador</h2>
+    <form action="/admin" method="post">
+        <label for="nome_jogador">Nome do Jogador:</label>
+        <input type="text" id="nome_jogador" name="nome_jogador" required>
+        <button type="submit">Adicionar</button>
+    </form>
+    
+    <hr>
+
+    <h2>Jogadores Cadastrados</h2>
+    {% if jogadores %}
+        <ul>
+        {% for jogador in jogadores %}
+            <li>
+                <a href="{{ url_for('gerenciar_jogador', jogador_id=jogador[0]) }}">
+                    {{ jogador[1] }}
+                </a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum jogador cadastrado ainda.</p>
+    {% endif %}
+</body>
+</html>
