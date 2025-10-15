@@ -1,0 +1,64 @@
+body {
+    font-family: sans-serif;
+    background-color: #f0e6d2;
+    padding: 20px;
+}
+.container {
+    max-width: 600px;
+    margin: auto;
+    background: #c8b7a0;
+    border: 5px solid #785e3a;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+h1 {
+    text-align: center;
+    color: #3a2d1c;
+    border-bottom: 2px solid #785e3a;
+    padding-bottom: 10px;
+}
+#inventario-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    min-height: 200px;
+}
+.item-slot {
+    width: 100px;
+    height: 100px;
+    background-color: rgba(0,0,0,0.2);
+    border: 2px solid #785e3a;
+    border-radius: 8px;
+    position: relative; /* Essencial para o tooltip */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.item-slot img {
+    max-width: 90%;
+    max-height: 90%;
+    cursor: pointer;
+}
+.tooltip {
+    visibility: hidden; /* Começa escondido */
+    width: 160px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 110%; /* Posição acima do item */
+    left: 50%;
+    margin-left: -80px; /* Metade da largura para centralizar */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.tooltip h3 { margin: 0 0 5px 0; font-size: 16px; }
+.tooltip p { margin: 0; font-size: 14px; }
+.item-slot:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}

@@ -1,60 +1,117 @@
-# Arquivo: app.py (versão atualizada)
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-import database as db
+from flask import Flask, jsonify, render_template, request
+import psycopg2
 
 app = Flask(__name__)
-app.secret_key = 'sua_chave_secreta'
-ADMIN_PASSWORD = 'ravelgay'
+DB_URL = "postgresql://invent_h45i_user:d7jmli6VzlFzM5hldvMiPEOShizgEydt@dpg-d3nuf9emcj7s73f1k84g-a.ohio-postgres.render.com/invent_h45i"
 
-# ... (rotas /, /login, /logout continuam as mesmas) ...
-# ... (rota /admin continua a mesma) ...
+# --- PÁGINAS HTML (FRONTEND) ---
+# ... (todo o código anterior continua o mesmo) ...
 
-# --- NOVA ROTA PARA GERENCIAR O CATÁLOGO DE ITENS ---
-@app.route('/admin/itens', methods=['GET', 'POST'])
-def admin_itens():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+# --- PÁGINAS HTML (FRONTEND) ---
 
-    if request.method == 'POST':
-        # Adicionar novo item mestre
-        nome = request.form['nome']
-        descricao = request.form['descricao']
-        imagem_url = request.form['imagem_url']
-        if nome and imagem_url:
-            db.adicionar_item_mestre(nome, descricao, imagem_url)
-        return redirect(url_for('admin_itens'))
+@app.route('/')
+def pagina_inicial():
+    return render_template('index.html')
 
-    # Listar itens existentes
-    itens_mestre = db.listar_itens_mestre()
-    return render_template('admin_itens.html', itens=itens_mestre)
+@app.route('/admin')
+def pagina_admin():
+    return render_template('admin.html')
 
-# --- ROTA DE GERENCIAR JOGADOR ATUALIZADA ---
-@app.route('/jogador/<int:jogador_id>', methods=['GET', 'POST'])
-def gerenciar_jogador(jogador_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
+# MODIFIQUE ESTA ROTA:
+@app.route('/inventario/<int:jogador_id>')
+def pagina_inventario(jogador_id):
+    # Vamos buscar o nome do jogador para exibir no título da página
+    jogador_info = None
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        cur.execute("SELECT id, nome FROM jogadores WHERE id = %s;", (jogador_id,))
+        jogador_db = cur.fetchone()
+        cur.close()
+        conn.close()
+        if jogador_db:
+            jogador_info = {'id': jogador_db[0], 'nome': jogador_db[1]}
+    except Exception as e:
+        print(f"Erro ao buscar jogador: {e}")
 
-    if request.method == 'POST':
-        # Adicionar item do catálogo ao inventário do jogador
-        item_mestre_id = request.form['item_mestre_id']
-        quantidade = request.form['quantidade']
-        if item_mestre_id and quantidade:
-            db.adicionar_item_ao_inventario(jogador_id, int(item_mestre_id), int(quantidade))
-        return redirect(url_for('gerenciar_jogador', jogador_id=jogador_id))
+    # Renderiza o novo template, passando os dados do jogador
+    return render_template('inventario.html', jogador=jogador_info)
 
-    nome_do_jogador = db.obter_jogador_por_id(jogador_id)
-    inventario_do_jogador = db.listar_itens_por_jogador(jogador_id)
-    # Precisamos da lista de todos os itens mestre para popular o dropdown
-    itens_mestre_disponiveis = db.listar_itens_mestre()
 
-    if nome_do_jogador is None:
-        return redirect(url_for('admin'))
+# --- ROTAS DA API (BACKEND) ---
+
+# ... (todo o resto do seu código de API continua aqui, sem alterações) ...
+
+# ROTA PARA LISTAR JOGADORES
+@app.route('/api/jogadores', methods=['GET'])
+def get_jogadores():
+    # ... código continua o mesmo
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        cur.execute("SELECT id, nome FROM jogadores;")
+        jogadores_tuplas = cur.fetchall()
+        cur.close()
+        conn.close()
+        lista_de_jogadores = [{'id': tupla[0], 'nome': tupla[1]} for tupla in jogadores_tuplas]
+        return jsonify(lista_de_jogadores)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# NOVA ROTA DE API: Listar todos os itens disponíveis no jogo
+@app.route('/api/itens', methods=['GET'])
+def get_itens():
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        cur.execute("SELECT id, nome FROM itens;")
+        itens_tuplas = cur.fetchall()
+        cur.close()
+        conn.close()
+        lista_de_itens = [{'id': tupla[0], 'nome': tupla[1]} for tupla in itens_tuplas]
+        return jsonify(lista_de_itens)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# NOVA ROTA DE API: Adicionar um item ao inventário de um jogador
+@app.route('/api/inventario/adicionar', methods=['POST'])
+def adicionar_item_inventario():
+    dados = request.get_json()
+    jogador_id = dados.get('jogador_id')
+    item_id = dados.get('item_id')
+
+    if not jogador_id or not item_id:
+        return jsonify({'error': 'ID do jogador e do item são obrigatórios.'}), 400
     
-    return render_template('jogador.html', 
-                           nome=nome_do_jogador, 
-                           inventario=inventario_do_jogador,
-                           jogador_id=jogador_id,
-                           itens_mestre=itens_mestre_disponiveis) # Passa a lista para o template
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        sql = "INSERT INTO inventario (jogador_id, item_id) VALUES (%s, %s);"
+        cur.execute(sql, (jogador_id, item_id))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({'message': 'Item adicionado ao inventário com sucesso!'}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ROTA PARA VER INVENTÁRIO DE UM JOGADOR
+@app.route('/api/jogador/<int:jogador_id>/inventario', methods=['GET'])
+def get_inventario(jogador_id):
+    # ... código continua o mesmo
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        query = "SELECT itens.nome, itens.descricao, itens.url_imagem FROM inventario JOIN itens ON inventario.item_id = itens.id WHERE inventario.jogador_id = %s;"
+        cur.execute(query, (jogador_id,))
+        items_do_jogador = cur.fetchall()
+        cur.close()
+        conn.close()
+        inventario_list = [{"nome": item[0], "descricao": item[1], "url_imagem": item[2]} for item in items_do_jogador]
+        return jsonify(inventario_list)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
