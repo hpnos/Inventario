@@ -5,6 +5,7 @@ from flask import Flask, jsonify, render_template, request, session, redirect, u
 from functools import wraps
 # Ferramenta para conectar ao banco de dados PostgreSQL
 import psycopg2
+import os
 
 # 2. CONFIGURAÇÃO INICIAL DO APP
 app = Flask(__name__)
@@ -14,7 +15,7 @@ app = Flask(__name__)
 app.secret_key = 'sua-chave-secreta-pode-ser-qualquer-coisa'
 
 # URL DE CONEXÃO: O endereço do seu banco de dados no Render.
-DB_URL = "postgresql://invent_h45i_user:d7jmli6VzlFzM5hldvMiPEOShizgEydt@dpg-d3nuf9emcj7s73f1k84g-a.ohio-postgres.render.com/invent_h45i"
+DB_URL = os.environ.get('DATABASE_URL')
 
 
 # 3. LÓGICA DE AUTENTICAÇÃO
