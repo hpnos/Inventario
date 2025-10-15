@@ -41,20 +41,37 @@ def adicionar_item_ao_inventario(jogador_id, item_mestre_id, quantidade):
     cursor.close()
     conn.close()
 
-def listar_itens_por_jogador(jogador_id):
+# Em database.py, substitua a função listar_inventarios_completos
+
+def listar_inventarios_completos():
+    """
+    Busca todos os jogadores e agrupa seus itens para a página de visualização,
+    usando a nova estrutura com JOIN.
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
-    # O comando JOIN busca dados das duas tabelas de uma vez
-    cursor.execute("""
-        SELECT im.nome, im.descricao, inv.quantidade, im.imagem_url
-        FROM inventario inv
-        JOIN itens_mestre im ON inv.item_mestre_id = im.id
-        WHERE inv.jogador_id = %s
-    """, (jogador_id,))
-    itens = cursor.fetchall()
+
+    inventarios = {}
+    
+    # 1. Pega todos os jogadores
+    cursor.execute("SELECT id, nome FROM jogadores ORDER BY nome")
+    jogadores = cursor.fetchall()
+
+    # 2. Para cada jogador, busca seus itens usando JOIN
+    for jogador_id, nome_jogador in jogadores:
+        cursor.execute("""
+            SELECT im.nome, im.descricao, inv.quantidade, im.imagem_url
+            FROM inventario inv
+            JOIN itens_mestre im ON inv.item_mestre_id = im.id
+            WHERE inv.jogador_id = %s
+            ORDER BY im.nome
+        """, (jogador_id,))
+        itens = cursor.fetchall()
+        inventarios[nome_jogador] = itens
+        
     cursor.close()
     conn.close()
-    return itens
+    return inventarios
 
 def listar_inventarios_completos():
     # ... (esta função precisaria ser reescrita com JOINs também, podemos fazer depois se necessário) ...
