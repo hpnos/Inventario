@@ -62,3 +62,30 @@ h1 {
     visibility: visible;
     opacity: 1;
 }
+
+/* 1. ESTILO BASE (comum para todas as páginas com fundo) */
+/* Se você já tem 'body.pagina-com-fundo', pode substituir por isto. */
+body.pagina-com-fundo {
+    /* Mantemos todos os estilos de posicionamento e tamanho aqui */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #333; /* Cor reserva caso a imagem não carregue */
+}
+
+/* 2. ESTILOS ESPECÍFICOS (um para cada imagem) */
+.fundo-index {
+    background-image: url('images/fundo-index.jpg'); /* <<-- Mude o nome do arquivo aqui se for diferente */
+}
+
+.fundo-inventario {
+    background-image: url('images/fundo-inventario.png'); /* <<-- Mude o nome do arquivo aqui se for diferente */
+}
+
+
+/* A regra para o .container continua a mesma para garantir a legibilidade */
+.container {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+}
