@@ -14,7 +14,7 @@ body {
 }
 h1 {
     text-align: center;
-    color: #3a2d1c;
+    color: #fcfcff;
     border-bottom: 2px solid #785e3a;
     padding-bottom: 10px;
 }
@@ -23,6 +23,7 @@ h1 {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 15px;
     min-height: 200px;
+    justify-content: center;
 }
 .item-slot {
     width: 100px;
@@ -90,3 +91,4 @@ body.pagina-com-fundo {
     border-radius: 8px;
 
 }
+
