@@ -4,35 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Jogadores</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
-        h1 { text-align: center; }
-        ul { list-style: none; padding: 0; }
-        li { background-color: #f0f0f0; margin: 5px 0; padding: 15px; border-radius: 5px; }
-        a { text-decoration: none; color: #333; font-weight: bold; }
-    </style>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body class="pagina-com-fundo fundo-index">
-    <h1>Lista de Jogadores</h1>
-    <ul id="lista-jogadores">
-        </ul>
+
+    <div class="container">
+        <h1>Lista de Jogadores</h1>
+        <ul id="lista-jogadores" style="list-style: none; padding: 0;">
+            </ul>
+    </div>
 
     <script>
-        // Pega o elemento da lista no HTML
         const listaJogadoresElement = document.getElementById('lista-jogadores');
 
-        // Faz uma chamada para a nossa API que lista os jogadores
         fetch('/api/jogadores')
             .then(response => response.json())
             .then(jogadores => {
                 if (jogadores.length === 0) {
                     listaJogadoresElement.innerHTML = '<li>Nenhum jogador cadastrado ainda.</li>';
                 } else {
-                    // Para cada jogador retornado pela API, cria um item na lista
+                    listaJogadoresElement.innerHTML = ''; // Limpa a lista
                     jogadores.forEach(jogador => {
                         const listItem = document.createElement('li');
-                        // O link ainda não leva para a página final, mas já está preparado
-                        listItem.innerHTML = `<a href="/inventario/${jogador.id}">${jogador.nome}</a>`;
+                        
+                        // Estilos para cada item da lista
+                        listItem.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                        listItem.style.margin = '8px 0';
+                        listItem.style.padding = '15px';
+                        listItem.style.borderRadius = '5px';
+                        
+                        // Link do jogador
+                        const link = document.createElement('a');
+                        link.href = `/inventario/${jogador.id}`;
+                        link.textContent = jogador.nome;
+                        link.style.textDecoration = 'none';
+                        link.style.color = '#b6a45c';
+                        link.style.fontWeight = 'bold';
+                        
+                        listItem.appendChild(link);
                         listaJogadoresElement.appendChild(listItem);
                     });
                 }

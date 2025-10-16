@@ -6,18 +6,22 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-   <body class="pagina-com-fundo fundo-inventario">
+
+<body class="pagina-com-fundo fundo-inventario">
+
+    <div class="container">
+    
         <h1>Inventário de {{ jogador.nome if jogador else 'Jogador não encontrado' }}</h1>
 
         <div id="inventario-grid">
             </div>
+        
     </div>
 
     <script>
         const jogadorId = {{ jogador.id }};
     </script>
-    
     <script src="{{ url_for('static', filename='inventario.js') }}"></script>
+    
 </body>
 </html>

@@ -1,48 +1,95 @@
+/* ==========================================================================
+   ESTILOS GERAIS E DE FUNDO
+   ========================================================================== */
+
+/* Estilo base para todas as páginas */
 body {
     font-family: sans-serif;
-    background-color: #f0e6d2;
     padding: 20px;
 }
+
+/* Regra para aplicar uma imagem de fundo */
+body.pagina-com-fundo {
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #333; /* Cor de fundo caso a imagem falhe */
+}
+
+/* Imagem de fundo para a página inicial */
+.fundo-index {
+    background-image: url('images/fundo-index.jpg');
+}
+
+/* Imagem de fundo para a página de inventário */
+.fundo-inventario {
+    background-image: url('images/fundo-inventario.jpg');
+}
+
+
+/* ==========================================================================
+   ESTILOS DO PAINEL DE INVENTÁRIO (.container)
+   ========================================================================== */
+
+/* ESTA É A REGRA MAIS IMPORTANTE E AGORA A ÚNICA PARA O PAINEL */
 .container {
     max-width: 600px;
-    margin: auto;
-    background: #c8b7a0;
-    border: 5px solid #785e3a;
+    margin: auto; /* Centraliza o painel na página */
+    
+    /* A cor de fundo de pergaminho que faz o painel se destacar */
+    background-color: #41301e; 
+    
+    border: 5px solid #785e3a; /* A borda externa escura */
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    box-shadow: 0 0 15px rgba(0,0,0,0.5); /* Sombra para dar profundidade */
 }
+
+/* Estilo do título dentro do painel */
 h1 {
     text-align: center;
-    color: #fcfcff;
-    border-bottom: 2px solid #785e3a;
+    color: #b6a45c;
+    border-bottom: 2px solid #785e3a; /* A linha interna que você queria */
     padding-bottom: 10px;
 }
+
+
+/* ==========================================================================
+   ESTILOS DOS ITENS DO INVENTÁRIO
+   ========================================================================== */
+
+/* A grade que segura os itens, agora usando Flexbox para centralizar */
 #inventario-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 15px;
     min-height: 200px;
-    justify-content: center;
 }
+
+/* O "slot" individual de cada item */
 .item-slot {
     width: 100px;
     height: 100px;
     background-color: rgba(0,0,0,0.2);
     border: 2px solid #785e3a;
     border-radius: 8px;
-    position: relative; /* Essencial para o tooltip */
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .item-slot img {
     max-width: 90%;
     max-height: 90%;
     cursor: pointer;
 }
+
+/* Estilos da caixa de descrição (tooltip) */
 .tooltip {
-    visibility: hidden; /* Começa escondido */
+    visibility: hidden;
     width: 160px;
     background-color: #333;
     color: #fff;
@@ -51,44 +98,16 @@ h1 {
     padding: 10px;
     position: absolute;
     z-index: 1;
-    bottom: 110%; /* Posição acima do item */
+    bottom: 110%;
     left: 50%;
-    margin-left: -80px; /* Metade da largura para centralizar */
+    margin-left: -80px;
     opacity: 0;
     transition: opacity 0.3s;
 }
+
 .tooltip h3 { margin: 0 0 5px 0; font-size: 16px; }
 .tooltip p { margin: 0; font-size: 14px; }
 .item-slot:hover .tooltip {
     visibility: visible;
     opacity: 1;
 }
-
-/* 1. ESTILO BASE (comum para todas as páginas com fundo) */
-/* Se você já tem 'body.pagina-com-fundo', pode substituir por isto. */
-body.pagina-com-fundo {
-    /* Mantemos todos os estilos de posicionamento e tamanho aqui */
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-color: #333; /* Cor reserva caso a imagem não carregue */
-}
-
-/* 2. ESTILOS ESPECÍFICOS (um para cada imagem) */
-.fundo-index {
-    background-image: url('images/fundo-index.jpg'); /* <<-- Mude o nome do arquivo aqui se for diferente */
-}
-
-.fundo-inventario {
-    background-image: url('images/fundo-inventario.jpg'); /* <<-- Mude o nome do arquivo aqui se for diferente */
-}
-
-
-/* A regra para o .container continua a mesma para garantir a legibilidade */
-.container {
-    background-color: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-
-}
-
