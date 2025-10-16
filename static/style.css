@@ -80,7 +80,7 @@ body.pagina-com-fundo {
 }
 
 .fundo-inventario {
-    background-image: url('images/fundo-inventario.png'); /* <<-- Mude o nome do arquivo aqui se for diferente */
+    background-image: url('images/fundo-inventario.jpg'); /* <<-- Mude o nome do arquivo aqui se for diferente */
 }
 
 
@@ -88,4 +88,5 @@ body.pagina-com-fundo {
 .container {
     background-color: rgba(255, 255, 255, 0.9);
     border-radius: 8px;
+
 }
