@@ -30,7 +30,7 @@
                         const listItem = document.createElement('li');
                         
                         // Estilos para cada item da lista
-                        listItem.style.backgroundColor = 'rgba(0,0,0,0.1)';
+                        listItem.style.backgroundColor = 'rgba(0,0,0,0.2)';
                         listItem.style.margin = '8px 0';
                         listItem.style.padding = '15px';
                         listItem.style.borderRadius = '5px';
@@ -38,11 +38,27 @@
                         // Link do jogador
                         const link = document.createElement('a');
                         link.href = `/inventario/${jogador.id}`;
-                        link.textContent = jogador.nome;
                         link.style.textDecoration = 'none';
-                        link.style.color = '#b6a45c';
+                        link.style.color = '#E0D5C4'; // Cor clara para o texto
                         link.style.fontWeight = 'bold';
                         
+                        // --- ALTERAÇÃO PRINCIPAL AQUI ---
+                        // Adicionamos display flex para alinhar o ícone e o nome lado a lado
+                        link.style.display = 'flex';
+                        link.style.alignItems = 'center';
+
+                        // Variável para guardar o HTML do ícone
+                        let iconHTML = '';
+                        // Verifica se o jogador TEM um ícone
+                        if (jogador.icon_url) {
+                            // Se tiver, cria a tag da imagem
+                            iconHTML = `<img src="${jogador.icon_url}" alt="Ícone" style="width: 24px; height: 24px; margin-right: 10px; border-radius: 4px;">`;
+                        }
+                        
+                        // Monta o conteúdo final do link: o ícone (se existir) + o nome do jogador
+                        link.innerHTML = iconHTML + jogador.nome;
+                        // --- FIM DA ALTERAÇÃO ---
+
                         listItem.appendChild(link);
                         listaJogadoresElement.appendChild(listItem);
                     });

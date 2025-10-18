@@ -1,11 +1,13 @@
-// Seletores de Elementos
+// Seletores de Elementos (Adicionamos os novos seletores do painel de ícones)
 const formAddJogador = document.getElementById('form-add-jogador');
-const nomeInput = document.getElementById('nome-jogador'); // Agora o input já existe no HTML
-
+const nomeInput = document.getElementById('nome-jogador');
 const selectJogador = document.getElementById('select-jogador');
 const selectItem = document.getElementById('select-item');
 const formAddItem = document.getElementById('form-add-item');
 const listaInventario = document.getElementById('lista-inventario-jogador');
+const formGrantIcon = document.getElementById('form-grant-icon');
+const selectJogadorIcon = document.getElementById('select-jogador-icon');
+const selectIcon = document.getElementById('select-icon');
 
 // Funções
 function mostrarInventario(jogadorId) {
@@ -31,8 +33,12 @@ function mostrarInventario(jogadorId) {
 function carregarJogadores() {
     fetch('/api/jogadores').then(res => res.json()).then(jogadores => {
         selectJogador.innerHTML = '<option value="">Selecione um Jogador</option>';
+        // MODIFICADO: Também popula o dropdown de jogadores no painel de ícones
+        selectJogadorIcon.innerHTML = '<option value="">Selecione um Jogador</option>';
         jogadores.forEach(j => {
-            selectJogador.innerHTML += `<option value="${j.id}">${j.nome}</option>`;
+            const optionHTML = `<option value="${j.id}">${j.nome}</option>`;
+            selectJogador.innerHTML += optionHTML;
+            selectJogadorIcon.innerHTML += optionHTML;
         });
     });
 }
@@ -46,10 +52,26 @@ function carregarItens() {
     });
 }
 
+// NOVA FUNÇÃO: Busca os ícones disponíveis na API e preenche o dropdown
+function carregarIconesDisponiveis() {
+    fetch('/api/icons')
+        .then(res => res.json())
+        .then(icons => {
+            // Adiciona uma opção padrão para remover o ícone existente
+            selectIcon.innerHTML = '<option value="">Remover Ícone</option>';
+            icons.forEach(iconUrl => {
+                const iconName = iconUrl.split('/').pop(); // Extrai apenas o nome do arquivo da URL
+                selectIcon.innerHTML += `<option value="${iconUrl}">${iconName}</option>`;
+            });
+        });
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     carregarJogadores();
     carregarItens();
+    // MODIFICADO: Chama a nova função para carregar os ícones quando a página abre
+    carregarIconesDisponiveis();
     mostrarInventario(null);
 });
 
@@ -84,4 +106,26 @@ listaInventario.addEventListener('click', (event) => {
             });
         }
     }
+});
+
+// NOVO EVENT LISTENER: Controla o envio do formulário de conceder ícones
+formGrantIcon.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const jogadorId = selectJogadorIcon.value;
+    const iconUrl = selectIcon.value;
+
+    if (!jogadorId) {
+        alert('Por favor, selecione um jogador.');
+        return;
+    }
+
+    fetch('/api/jogador/definir-icone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jogador_id: jogadorId, icon_url: iconUrl })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || data.error);
+    });
 });
