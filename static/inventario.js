@@ -31,3 +31,4 @@ fetch(`/api/jogador/${jogadorId}/inventario`)
         console.error('Erro ao carregar inventário:', error);
         inventarioGrid.innerHTML = '<p>Não foi possível carregar o inventário.</p>';
     });
+// A CHAVE } EXTRA FOI REMOVIDA DAQUI

@@ -1,4 +1,4 @@
-// Seletores de Elementos (Adicionamos os novos seletores do painel de ícones)
+// Seletores de Elementos
 const formAddJogador = document.getElementById('form-add-jogador');
 const nomeInput = document.getElementById('nome-jogador');
 const selectJogador = document.getElementById('select-jogador');
@@ -33,7 +33,6 @@ function mostrarInventario(jogadorId) {
 function carregarJogadores() {
     fetch('/api/jogadores').then(res => res.json()).then(jogadores => {
         selectJogador.innerHTML = '<option value="">Selecione um Jogador</option>';
-        // MODIFICADO: Também popula o dropdown de jogadores no painel de ícones
         selectJogadorIcon.innerHTML = '<option value="">Selecione um Jogador</option>';
         jogadores.forEach(j => {
             const optionHTML = `<option value="${j.id}">${j.nome}</option>`;
@@ -52,15 +51,13 @@ function carregarItens() {
     });
 }
 
-// NOVA FUNÇÃO: Busca os ícones disponíveis na API e preenche o dropdown
 function carregarIconesDisponiveis() {
     fetch('/api/icons')
         .then(res => res.json())
         .then(icons => {
-            // Adiciona uma opção padrão para remover o ícone existente
             selectIcon.innerHTML = '<option value="">Remover Ícone</option>';
             icons.forEach(iconUrl => {
-                const iconName = iconUrl.split('/').pop(); // Extrai apenas o nome do arquivo da URL
+                const iconName = iconUrl.split('/').pop();
                 selectIcon.innerHTML += `<option value="${iconUrl}">${iconName}</option>`;
             });
         });
@@ -70,7 +67,6 @@ function carregarIconesDisponiveis() {
 document.addEventListener('DOMContentLoaded', () => {
     carregarJogadores();
     carregarItens();
-    // MODIFICADO: Chama a nova função para carregar os ícones quando a página abre
     carregarIconesDisponiveis();
     mostrarInventario(null);
 });
@@ -108,7 +104,7 @@ listaInventario.addEventListener('click', (event) => {
     }
 });
 
-// NOVO EVENT LISTENER: Controla o envio do formulário de conceder ícones
+// ESTE É O BLOCO DE CÓDIGO COMPLETO QUE ESTÁ DANDO ERRO AÍ
 formGrantIcon.addEventListener('submit', (event) => {
     event.preventDefault();
     const jogadorId = selectJogadorIcon.value;
@@ -119,6 +115,7 @@ formGrantIcon.addEventListener('submit', (event) => {
         return;
     }
 
+    // A PARTE QUE ESTAVA FALTANDO COMEÇA AQUI:
     fetch('/api/jogador/definir-icone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -128,4 +125,5 @@ formGrantIcon.addEventListener('submit', (event) => {
     .then(data => {
         alert(data.message || data.error);
     });
-});
+}); 
+// A CHAVE } EXTRA FOI REMOVIDA DAQUI

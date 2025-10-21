@@ -91,7 +91,6 @@ def get_jogadores():
     try:
         conn = psycopg2.connect(DB_URL)
         cur = conn.cursor()
-        # MODIFICADO: A query agora também busca a URL do ícone
         cur.execute("SELECT id, nome, icon_url FROM jogadores;")
         jogadores_tuplas = cur.fetchall()
         cur.close()
@@ -101,7 +100,7 @@ def get_jogadores():
             lista_de_jogadores.append({
                 'id': tupla[0], 
                 'nome': tupla[1],
-                'icon_url': tupla[2] # Retorna a URL do ícone no JSON
+                'icon_url': tupla[2]
             })
         return jsonify(lista_de_jogadores)
     except Exception as e:
@@ -127,7 +126,6 @@ def adicionar_jogador():
         conn.rollback()
         return jsonify({'error': str(e)}), 500
 
-# NOVA ROTA DE API: Para o admin definir/remover um ícone de um jogador
 @app.route('/api/jogador/definir-icone', methods=['POST'])
 @login_required
 def definir_icone_jogador():
@@ -152,7 +150,6 @@ def definir_icone_jogador():
 
 # --- APIs relacionadas a Itens e Inventário ---
 
-# NOVA ROTA DE API: Para listar os ícones que estão na pasta static
 @app.route('/api/icons', methods=['GET'])
 def get_available_icons():
     return jsonify(AVAILABLE_ICONS)
@@ -214,6 +211,23 @@ def adicionar_item_inventario():
         cur.close()
         conn.close()
         return jsonify({'message': 'Item adicionado ao inventário com sucesso!'}), 201
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==== FUNÇÃO QUE ESTAVA FALTANDO ====
+@app.route('/api/inventario/remover/<int:inventario_id>', methods=['DELETE'])
+@login_required # Protegida por login
+def remover_item_inventario(inventario_id):
+    try:
+        conn = psycopg2.connect(DB_URL)
+        cur = conn.cursor()
+        sql = "DELETE FROM inventario WHERE id = %s;"
+        cur.execute(sql, (inventario_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return jsonify({'message': 'Item removido com sucesso!'}), 200
     except Exception as e:
         conn.rollback()
         return jsonify({'error': str(e)}), 500
