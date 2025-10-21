@@ -1,224 +1,126 @@
-# 1. IMPORTAÇÕES
-# Ferramentas do Flask para criar o app, retornar JSON, renderizar HTML, etc.
-from flask import Flask, jsonify, render_template, request, session, redirect, url_for
-# Ferramenta para criar o nosso "decorator" de login
-from functools import wraps
-# Ferramenta para conectar ao banco de dados PostgreSQL
-import psycopg2
-# Ferramenta para interagir com o sistema de arquivos (ler a pasta de ícones)
-import os
+// Seletores de Elementos (Adicionamos os novos seletores do painel de ícones)
+const formAddJogador = document.getElementById('form-add-jogador');
+const nomeInput = document.getElementById('nome-jogador');
+const selectJogador = document.getElementById('select-jogador');
+const selectItem = document.getElementById('select-item');
+const formAddItem = document.getElementById('form-add-item');
+const listaInventario = document.getElementById('lista-inventario-jogador');
+const formGrantIcon = document.getElementById('form-grant-icon');
+const selectJogadorIcon = document.getElementById('select-jogador-icon');
+const selectIcon = document.getElementById('select-icon');
 
+// Funções
+function mostrarInventario(jogadorId) {
+    listaInventario.innerHTML = '<li>Carregando...</li>';
+    if (!jogadorId) {
+        listaInventario.innerHTML = '<li>Selecione um jogador para ver o inventário.</li>';
+        return;
+    }
+    fetch(`/api/jogador/${jogadorId}/inventario`).then(res => res.json()).then(inventario => {
+        listaInventario.innerHTML = '';
+        if (inventario.length === 0) {
+            listaInventario.innerHTML = '<li>Este inventário está vazio.</li>';
+        } else {
+            inventario.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${item.nome}</span> <button class="remove-btn" data-inventario-id="${item.inventario_id}">Remover</button>`;
+                listaInventario.appendChild(li);
+            });
+        }
+    });
+}
 
-# 2. CONFIGURAÇÃO INICIAL DO APP
-app = Flask(__name__)
+function carregarJogadores() {
+    fetch('/api/jogadores').then(res => res.json()).then(jogadores => {
+        selectJogador.innerHTML = '<option value="">Selecione um Jogador</option>';
+        selectJogadorIcon.innerHTML = '<option value="">Selecione um Jogador</option>';
+        jogadores.forEach(j => {
+            const optionHTML = `<option value="${j.id}">${j.nome}</option>`;
+            selectJogador.innerHTML += optionHTML;
+            selectJogadorIcon.innerHTML += optionHTML;
+        });
+    });
+}
 
-# CHAVE SECRETA: Essencial para o sistema de login (sessões) funcionar.
-app.secret_key = 'sua-chave-secreta-pode-ser-qualquer-coisa'
+function carregarItens() {
+    fetch('/api/itens').then(res => res.json()).then(itens => {
+        selectItem.innerHTML = '<option value="">Selecione um Item</option>';
+        itens.forEach(i => {
+            selectItem.innerHTML += `<option value="${i.id}">${i.nome}</option>`;
+        });
+    });
+}
 
-# URL DE CONEXÃO: O endereço do seu banco de dados no Render.
-DB_URL = "postgresql://invent_h45i_user:d7jmli6VzlFzM5hldvMiPEOShizgEydt@dpg-d3nuf9emcj7s73f1k84g-a.ohio-postgres.render.com/invent_h45i"
+function carregarIconesDisponiveis() {
+    fetch('/api/icons')
+        .then(res => res.json())
+        .then(icons => {
+            selectIcon.innerHTML = '<option value="">Remover Ícone</option>';
+            icons.forEach(iconUrl => {
+                const iconName = iconUrl.split('/').pop();
+                selectIcon.innerHTML += `<option value="${iconUrl}">${iconName}</option>`;
+            });
+        });
+}
 
-# NOVO: Lógica para encontrar os ícones disponíveis na sua pasta static
-ICON_PATH = os.path.join('static', 'images', 'icons')
-AVAILABLE_ICONS = []
-if os.path.exists(ICON_PATH):
-    # Cria uma lista com o caminho de cada ícone encontrado na pasta
-    AVAILABLE_ICONS = [f"/static/images/icons/{f}" for f in os.listdir(ICON_PATH) if os.path.isfile(os.path.join(ICON_PATH, f))]
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    carregarJogadores();
+    carregarItens();
+    carregarIconesDisponiveis();
+    mostrarInventario(null);
+});
 
+selectJogador.addEventListener('change', (e) => mostrarInventario(e.target.value));
 
-# 3. LÓGICA DE AUTENTICAÇÃO
+formAddJogador.addEventListener('submit', (event) => {
+    event.preventDefault();
+    fetch('/api/jogador', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome: nomeInput.value }) })
+    .then(res => res.json()).then(data => { 
+        alert(data.message || data.error); 
+        nomeInput.value = ''; 
+        carregarJogadores(); 
+    });
+});
 
-# Decorator que verifica se o usuário está logado
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'logged_in' not in session:
-            return redirect(url_for('pagina_login'))
-        return f(*args, **kwargs)
-    return decorated_function
+formAddItem.addEventListener('submit', (event) => {
+    event.preventDefault();
+    fetch('/api/inventario/adicionar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jogador_id: selectJogador.value, item_id: selectItem.value }) })
+    .then(res => res.json()).then(data => { 
+        alert(data.message || data.error); 
+        mostrarInventario(selectJogador.value); 
+    });
+});
 
+// ESTA É A FUNÇÃO IMPORTANTE
+listaInventario.addEventListener('click', (event) => {
+    if (event.target && event.target.classList.contains('remove-btn')) {
+        const inventarioId = event.target.dataset.inventarioId;
+        if (confirm('Tem certeza que deseja remover este item?')) {
+            // A URL CORRETA É ESTA:
+            fetch(`/api/inventario/remover/${inventarioId}`, { method: 'DELETE' }).then(res => res.json()).then(data => {
+                alert(data.message || data.error);
+                mostrarInventario(selectJogador.value);
+            });
+        }
+    }
+});
 
-# 4. ROTAS QUE RENDERIZAM PÁGINAS HTML (FRONTEND)
-
-@app.route('/')
-def pagina_inicial():
-    return render_template('index.html')
-
-@app.route('/admin')
-@login_required
-def pagina_admin():
-    return render_template('admin.html')
-
-@app.route('/inventario/<int:jogador_id>')
-def pagina_inventario(jogador_id):
-    jogador_info = None
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        cur.execute("SELECT id, nome FROM jogadores WHERE id = %s;", (jogador_id,))
-        jogador_db = cur.fetchone()
-        cur.close()
-        conn.close()
-        if jogador_db:
-            jogador_info = {'id': jogador_db[0], 'nome': jogador_db[1]}
-    except Exception as e:
-        print(f"Erro ao buscar jogador: {e}")
-    return render_template('inventario.html', jogador=jogador_info)
-
-@app.route('/login', methods=['GET', 'POST'])
-def pagina_login():
-    error = None
-    if request.method == 'POST':
-        if request.form['username'] == 'admin' and request.form['password'] == 'Ravel@5858':
-            session['logged_in'] = True
-            return redirect(url_for('pagina_admin'))
-        else:
-            error = 'Credenciais inválidas. Tente novamente.'
-    return render_template('login.html', error=error)
-
-@app.route('/logout')
-def logout():
-    session.pop('logged_in', None)
-    return redirect(url_for('pagina_login'))
-
-
-# 5. ROTAS DE API QUE RETORNAM DADOS JSON (BACKEND)
-
-# --- APIs relacionadas a Jogadores ---
-
-@app.route('/api/jogadores', methods=['GET'])
-def get_jogadores():
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        # MODIFICADO: A query agora também busca a URL do ícone
-        cur.execute("SELECT id, nome, icon_url FROM jogadores;")
-        jogadores_tuplas = cur.fetchall()
-        cur.close()
-        conn.close()
-        lista_de_jogadores = []
-        for tupla in jogadores_tuplas:
-            lista_de_jogadores.append({
-                'id': tupla[0], 
-                'nome': tupla[1],
-                'icon_url': tupla[2] # Retorna a URL do ícone no JSON
-            })
-        return jsonify(lista_de_jogadores)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/jogador', methods=['POST'])
-def adicionar_jogador():
-    dados = request.get_json()
-    nome_jogador = dados.get('nome')
-    if not nome_jogador:
-        return jsonify({'error': 'O nome do jogador é obrigatório.'}), 400
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        sql = "INSERT INTO jogadores (nome) VALUES (%s) RETURNING id;"
-        cur.execute(sql, (nome_jogador,))
-        novo_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({'id': novo_id, 'nome': nome_jogador, 'message': 'Jogador adicionado com sucesso!'}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-
-# NOVA ROTA DE API: Para o admin definir/remover um ícone de um jogador
-@app.route('/api/jogador/definir-icone', methods=['POST'])
-@login_required
-def definir_icone_jogador():
-    dados = request.get_json()
-    jogador_id = dados.get('jogador_id')
-    icon_url = dados.get('icon_url')
-    if not jogador_id:
-        return jsonify({'error': 'ID do jogador é obrigatório.'}), 400
-    db_icon_url = icon_url if icon_url else None
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        sql = "UPDATE jogadores SET icon_url = %s WHERE id = %s;"
-        cur.execute(sql, (db_icon_url, jogador_id))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({'message': 'Ícone do jogador atualizado com sucesso!'}), 200
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-
-# --- APIs relacionadas a Itens e Inventário ---
-
-# NOVA ROTA DE API: Para listar os ícones que estão na pasta static
-@app.route('/api/icons', methods=['GET'])
-def get_available_icons():
-    return jsonify(AVAILABLE_ICONS)
-
-@app.route('/api/itens', methods=['GET'])
-def get_itens():
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        cur.execute("SELECT id, nome FROM itens;")
-        itens_tuplas = cur.fetchall()
-        cur.close()
-        conn.close()
-        lista_de_itens = [{'id': tupla[0], 'nome': tupla[1]} for tupla in itens_tuplas]
-        return jsonify(lista_de_itens)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/jogador/<int:jogador_id>/inventario', methods=['GET'])
-def get_inventario(jogador_id):
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        query = """
-            SELECT inventario.id, itens.nome, itens.descricao, itens.url_imagem 
-            FROM inventario 
-            JOIN itens ON inventario.item_id = itens.id 
-            WHERE inventario.jogador_id = %s;
-        """
-        cur.execute(query, (jogador_id,))
-        items_do_jogador = cur.fetchall()
-        cur.close()
-        conn.close()
-        inventario_list = []
-        for item in items_do_jogador:
-            inventario_list.append({
-                "inventario_id": item[0],
-                "nome": item[1],
-                "descricao": item[2],
-                "url_imagem": item[3]
-            })
-        return jsonify(inventario_list)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/api/inventario/adicionar', methods=['POST'])
-def adicionar_item_inventario():
-    dados = request.get_json()
-    jogador_id = dados.get('jogador_id')
-    item_id = dados.get('item_id')
-    if not jogador_id or not item_id:
-        return jsonify({'error': 'ID do jogador e do item são obrigatórios.'}), 400
-    try:
-        conn = psycopg2.connect(DB_URL)
-        cur = conn.cursor()
-        sql = "INSERT INTO inventario (jogador_id, item_id) VALUES (%s, %s);"
-        cur.execute(sql, (jogador_id, item_id))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return jsonify({'message': 'Item adicionado ao inventário com sucesso!'}), 201
-    except Exception as e:
-        conn.rollback()
-        return jsonify({'error': str(e)}), 500
-
-
-# 6. INICIALIZAÇÃO DO SERVIDOR
-if __name__ == '__main__':
-    app.run(debug=True)
+formGrantIcon.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const jogadorId = selectJogadorIcon.value;
+    const iconUrl = selectIcon.value;
+    if (!jogadorId) {
+        alert('Por favor, selecione um jogador.');
+        return;
+    }
+    fetch('/api/jogador/definir-icone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jogador_id: jogadorId, icon_url: iconUrl })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || data.error);
+    });
+});
